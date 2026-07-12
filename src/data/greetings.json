@@ -1,0 +1,123 @@
+{
+  "official": {
+    "timeBased": [
+      "Good morning",
+      "Good morning, {name}",
+      "Good afternoon",
+      "Good afternoon, {name}",
+      "Good evening",
+      "Good evening, {name}",
+      "Evening",
+      "Evening, {name}",
+      "Hello, night owl"
+    ],
+    "dayBased": [
+      "Happy Monday",
+      "Happy Monday, {name}",
+      "Happy Tuesday",
+      "Happy Tuesday, {name}",
+      "Happy Wednesday",
+      "Happy Wednesday, {name}",
+      "Happy Thursday",
+      "Happy Thursday, {name}",
+      "Happy Friday",
+      "Happy Friday, {name}",
+      "That Friday feeling",
+      "That Friday feeling, {name}",
+      "Happy Saturday",
+      "Happy Saturday, {name}",
+      "Happy Sunday",
+      "Happy Sunday, {name}",
+      "Welcome to the weekend",
+      "Welcome to the weekend, {name}",
+      "Sunday session?",
+      "Sunday session, {name}?"
+    ],
+    "generic": [
+      "Welcome",
+      "Welcome, {name}",
+      "Hey there",
+      "Hey there, {name}",
+      "{name} returns!",
+      "Back at it!",
+      "Back at it, {name}",
+      "Coffee and Work time?",
+      "Hi, how are you?",
+      "Hi {name}, how are you?",
+      "How was your day?",
+      "How was your day, {name}?",
+      "How's it going?",
+      "How's it going, {name}?",
+      "What's new?",
+      "What's new, {name}?",
+      "Let's chat incognito",
+      "Greetings, whoever you are"
+    ]
+  },
+  "custom": {
+    "earlyMorning": [
+      "Morning, {name}.",
+      "Early start, {name}?",
+      "Rise and shine, {name}.",
+      "Up with the sun, {name}?",
+      "Morning grind, {name}.",
+      "Fresh start, {name}.",
+      "Coffee o'clock, {name}.",
+      "Sun's barely up, {name}."
+    ],
+    "midMorning": [
+      "Productive morning, {name}?",
+      "Locked in already, {name}?",
+      "Morning momentum, {name}.",
+      "Back at it, {name}.",
+      "Ready to build, {name}?"
+    ],
+    "midday": [
+      "Midday check-in, {name}.",
+      "Lunch break, {name}?",
+      "Halfway through the day, {name}.",
+      "Noon already, {name}.",
+      "Powering through, {name}."
+    ],
+    "afternoon": [
+      "Still grinding, {name}?",
+      "Slump hour, {name}?",
+      "Deep in the zone, {name}?",
+      "Afternoon hustle, {name}.",
+      "Coffee refill, {name}?",
+      "Cruising through the day, {name}."
+    ],
+    "earlyEvening": [
+      "Winding down, {name}?",
+      "Day's almost done, {name}.",
+      "Evening session, {name}?",
+      "Back for round two, {name}?",
+      "Sunset coding, {name}?"
+    ],
+    "night": [
+      "Night owl mode, {name}?",
+      "Evening grind, {name}.",
+      "Late session, {name}?",
+      "Burning the midnight oil, {name}?",
+      "Still going, {name}?",
+      "Nighttime debugging, {name}?"
+    ],
+    "lateNight": [
+      "Up late, {name}?",
+      "Can't sleep, {name}?",
+      "Midnight coder, {name}.",
+      "Still awake, {name}?",
+      "2am inspiration, {name}?",
+      "No sleep till it ships, {name}?",
+      "Chasing the deadline, {name}?"
+    ],
+    "anyTime": [
+      "Back again, {name}?",
+      "Miss me, {name}?",
+      "Ready to build, {name}?",
+      "What are we breaking today, {name}?",
+      "Let's fix something, {name}.",
+      "New project, who dis, {name}?"
+    ]
+  }
+}

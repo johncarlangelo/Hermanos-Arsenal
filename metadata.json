@@ -1,0 +1,6 @@
+{
+  "name": "Hermanos Arsenal",
+  "description": "A customizable bookmarking dashboard with grid layout, themes, and draggable links.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
