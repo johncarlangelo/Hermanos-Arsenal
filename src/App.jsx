@@ -7,6 +7,7 @@ import ThemePicker from './components/ThemePicker';
 import Category from './components/Category';
 import GridLayout from './components/GridLayout';
 import SortableCategory from './components/SortableCategory';
+import ShareModal from './components/ShareModal';
 import AddCategoryModal from './components/AddCategoryModal';
 import AddLinkModal from './components/AddLinkModal';
 import BulkAddModal from './components/BulkAddModal';
@@ -52,6 +53,8 @@ function App() {
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [contextMenu, setContextMenu] = useState(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [currentShareUrl, setCurrentShareUrl] = useState('');
 
   useEffect(() => {
     let themeToApply = currentTheme;
@@ -214,8 +217,8 @@ function App() {
   const handleShare = async () => {
     try {
       const shareUrl = await generateShareLink({ username, categories });
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success('Share link copied to clipboard!');
+      setCurrentShareUrl(shareUrl);
+      setIsShareModalOpen(true);
     } catch (e) {
       toast.error('Failed to generate share link ' + (e.message || ''));
     }
@@ -534,7 +537,7 @@ function App() {
         />
 
         <div className="relative z-10 flex flex-col min-h-screen pt-28">
-          <Header
+          <Header 
             username={displayUsername}
             onExport={handleExport}
             onImport={handleImport}
@@ -653,6 +656,11 @@ function App() {
           customThemes={customThemes}
           onSaveCustomTheme={handleSaveCustomTheme}
           onDeleteCustomTheme={handleDeleteCustomTheme}
+        />
+        <ShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          longUrl={currentShareUrl}
         />
         <AddCategoryModal
           isOpen={isAddCategoryModalOpen}
