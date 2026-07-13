@@ -133,6 +133,21 @@ Buttons should be robust, with shadow interactions.
 - Vertical rhythm inside cards/modals usually follows `space-y-6`.
 - Keep max-width constraints on the main app container: `max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8`.
 
+### 5. Checkboxes (Custom Checkbox Component)
+Do not use native checkboxes if you need custom styling. Use the reusable `<Checkbox>` component (`src/components/Checkbox.jsx`):
+```jsx
+import Checkbox from './components/Checkbox';
+
+<Checkbox 
+  checked={isChecked}
+  onChange={(e) => setIsChecked(e.target.checked)}
+  colorClass="text-theme-primary"
+/>
+```
+- The component handles accessibility under the hood by wrapping a native hidden input.
+- You should provide your own unclickable `<label>` alongside it.
+- **Customization**: Pass a `colorClass` to adapt it to warnings (`text-orange-500`) or specific themes.
+
 ## 🔮 Animations & Transitions
 - `motion/react` is the standard animation library. Use it for entrances/exits (`AnimatePresence`) and layout animations (`LayoutGroup`, `layoutId`).
 - For standard CSS hover effects, always include `transition-all` or `transition-colors` with a default tailwind duration.

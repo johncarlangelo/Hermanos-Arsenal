@@ -13,6 +13,7 @@ import AddLinkModal from './components/AddLinkModal';
 import BulkAddModal from './components/BulkAddModal';
 import SettingsModal from './components/SettingsModal';
 import CategoryIconPickerModal from './components/CategoryIconPickerModal';
+import SavedArsenalsModal from './components/SavedArsenalsModal';
 import ContextMenu from './components/ContextMenu';
 import AnimatedBackground from './components/AnimatedBackground';
 import GreetingClock from './components/GreetingClock';
@@ -22,7 +23,8 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { defaultThemes, applyTheme } from './utils/theme';
 import { exportCatalogue, importCatalogue, mergeData, detectDuplicates } from './utils/export';
 import { generateShareLink, getSharedCatalogueFromUrl } from './utils/share';
-import { Plus } from 'lucide-react';
+import { Plus, X, AlertTriangle, Eye } from 'lucide-react';
+import Checkbox from './components/Checkbox';
 
 function App() {
   const [username, setUsername] = useLocalStorage('linkdock-username', null);
@@ -42,10 +44,13 @@ function App() {
     const data = getSharedCatalogueFromUrl();
     return !!(data && data.categories && Array.isArray(data.categories));
   });
+  const [savedArsenals, setSavedArsenals] = useLocalStorage('linkdock-saved-arsenals', []);
+  const [viewingSavedId, setViewingSavedId] = useState(null);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isAddLinkModalOpen, setIsAddLinkModalOpen] = useState(false);
   const [isBulkAddModalOpen, setIsBulkAddModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSavedArsenalsModalOpen, setIsSavedArsenalsModalOpen] = useState(false);
   const [isCategoryIconPickerOpen, setIsCategoryIconPickerOpen] = useState(false);
   const [editingCategoryAppearance, setEditingCategoryAppearance] = useState(null);
   const [editingLink, setEditingLink] = useState(null);
@@ -55,6 +60,17 @@ function App() {
   const [contextMenu, setContextMenu] = useState(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [currentShareUrl, setCurrentShareUrl] = useState('');
+
+  const [hiddenOutdatedBanners, setHiddenOutdatedBanners] = useLocalStorage('linkdock-hidden-outdated-banners', []);
+  const [dismissedSessionBanners, setDismissedSessionBanners] = useState([]);
+  const [dontRemindOutdated, setDontRemindOutdated] = useState(false);
+
+  // Determine if viewing outdated arsenal
+  const activeSavedArsenal = isViewingShared && viewingSavedId ? savedArsenals.find(a => a.id === viewingSavedId) : null;
+  const isOutdatedView = activeSavedArsenal && savedArsenals.some(a => a.username === activeSavedArsenal.username && new Date(a.timestamp).getTime() > new Date(activeSavedArsenal.timestamp).getTime());
+  const showOutdatedBanner = isOutdatedView && !hiddenOutdatedBanners.includes(viewingSavedId) && !dismissedSessionBanners.includes(viewingSavedId);
+
+  // Add click outside listener for context menu
 
   useEffect(() => {
     let themeToApply = currentTheme;
@@ -134,7 +150,13 @@ function App() {
   }, []);
 
   const handleUsernameSet = (name) => setUsername(name);
-  const handleExport = () => exportCatalogue({ username, categories }, username);
+  const handleExport = () => {
+    if (isViewingShared && sharedData) {
+      exportCatalogue(sharedData, sharedData.username || 'Shared');
+    } else {
+      exportCatalogue({ username, categories }, username);
+    }
+  };
   const handleImport = async (file) => {
     try {
       const importedData = await importCatalogue(file);
@@ -251,54 +273,62 @@ function App() {
     }
   };
   
+  const handleSelectArsenal = (id) => {
+    if (id === null) {
+      setIsViewingShared(false);
+      setSharedData(null);
+      setViewingSavedId(null);
+      window.history.pushState({}, '', window.location.pathname);
+    } else {
+      const arsenal = savedArsenals.find(a => a.id === id);
+      if (arsenal) {
+        setIsViewingShared(true);
+        setSharedData({ username: arsenal.username, categories: arsenal.categories });
+        setViewingSavedId(id);
+      }
+    }
+  };
+
+  const handleDeleteSavedArsenal = (id) => {
+    setSavedArsenals(prev => prev.filter(a => a.id !== id));
+    if (viewingSavedId === id) {
+      handleSelectArsenal(null);
+    }
+    toast.success('Saved Arsenal removed');
+  };
+
   const handleReturnToOwn = () => {
-    setIsViewingShared(false);
-    setSharedData(null);
-    window.history.pushState({}, '', window.location.pathname);
+    handleSelectArsenal(null);
   };
 
   const handleSaveSharedToOwn = () => {
     if (!sharedData || !sharedData.categories) return;
-    const { duplicates } = detectDuplicates(categories, sharedData.categories);
     
-    if (duplicates.length > 0) {
-      toast((t) => (
-        <div className="flex flex-col gap-3">
-          <div>
-            <strong>Found {duplicates.length} duplicate categories</strong>
-            <p className="text-sm opacity-80 mt-1">How would you like to handle them?</p>
-          </div>
-          <div className="flex gap-2 justify-end">
-            <button
-              onClick={() => {
-                setCategories(mergeData(categories, sharedData.categories, 'replace'));
-                toast.dismiss(t.id);
-                toast.success('Imported and replaced duplicates');
-                handleReturnToOwn();
-              }}
-              className="px-4 py-1.5 border border-theme-border rounded-lg text-sm font-medium hover:bg-theme-surface"
-            >
-              Replace
-            </button>
-            <button
-              onClick={() => {
-                setCategories(mergeData(categories, sharedData.categories, 'merge'));
-                toast.dismiss(t.id);
-                toast.success('Imported and merged links');
-                handleReturnToOwn();
-              }}
-              className="px-4 py-1.5 bg-theme-primary text-white rounded-lg text-sm font-medium hover:opacity-90"
-            >
-              Merge
-            </button>
-          </div>
-        </div>
-      ), { duration: 10000 });
-    } else {
-      setCategories(mergeData(categories, sharedData.categories));
-      toast.success('Saved to your Arsenal!');
-      handleReturnToOwn();
+    const targetUsername = sharedData.username || 'Friend';
+    
+    // Check for exact duplication
+    const isDuplicate = savedArsenals.some(a => 
+      a.username === targetUsername && 
+      JSON.stringify(a.categories) === JSON.stringify(sharedData.categories)
+    );
+    
+    if (isDuplicate) {
+      toast.error("You have already saved this exact arsenal snapshot!");
+      return;
     }
+    
+    const newArsenal = {
+      id: Date.now().toString(),
+      username: targetUsername,
+      categories: sharedData.categories,
+      timestamp: new Date().toISOString()
+    };
+    
+    setSavedArsenals(prev => [...prev, newArsenal]);
+    toast.success(`Saved ${newArsenal.username}'s Arsenal!`);
+    
+    setViewingSavedId(newArsenal.id);
+    window.history.pushState({}, '', window.location.pathname);
   };
 
   const handleAddCategory = (name) => {
@@ -545,12 +575,14 @@ function App() {
             onThemeClick={() => setIsThemePickerOpen(true)}
             isViewingShared={isViewingShared}
             sharedUsername={sharedData?.username}
+            viewingSavedId={viewingSavedId}
             onReturnToOwn={handleReturnToOwn}
             onSaveShared={handleSaveSharedToOwn}
             onSearchClick={() => setIsSearchOpen(true)}
             onOpenBulkAdd={() => setIsBulkAddModalOpen(true)}
             onOpenAddCategory={() => setIsAddCategoryModalOpen(true)}
             onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenSavedArsenals={() => setIsSavedArsenalsModalOpen(true)}
           />
 
           <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 flex flex-col gap-12">
@@ -560,9 +592,58 @@ function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 200, delay: 0.1 }}
-              className="flex flex-col items-center justify-center space-y-6 mt-8 mb-4"
+              className="flex flex-col items-center justify-center space-y-4 mt-8 mb-4"
             >
-              <GreetingClock username={displayUsername} />
+              {isViewingShared && (
+                <div className="w-full max-w-2xl bg-theme-surface border border-theme-border/50 rounded-2xl p-4 flex items-center justify-center gap-3 shadow-sm">
+                  <Eye size={20} className="text-theme-text-secondary shrink-0" />
+                  <span className="text-sm font-medium text-theme-text-secondary text-center">
+                    <strong className="text-theme-text font-semibold mr-1">View-Only Mode:</strong> 
+                    You are exploring a saved snapshot. To customize these links, export this arsenal and import it into your own profile.
+                  </span>
+                </div>
+              )}
+
+              {showOutdatedBanner && (
+                <div className="w-full max-w-2xl bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 text-orange-500">
+                    <AlertTriangle size={20} className="shrink-0" />
+                    <span className="text-sm font-semibold">You are viewing an outdated version of this Arsenal.</span>
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        checked={dontRemindOutdated}
+                        onChange={(e) => setDontRemindOutdated(e.target.checked)}
+                        colorClass="text-orange-500"
+                        id="dontRemindOutdated"
+                      />
+                      <label htmlFor="dontRemindOutdated" className="text-xs font-medium text-theme-text-secondary select-none cursor-default">
+                        Don't remind me again
+                      </label>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        if (dontRemindOutdated) {
+                          setHiddenOutdatedBanners(prev => [...prev, viewingSavedId]);
+                        } else {
+                          setDismissedSessionBanners(prev => [...prev, viewingSavedId]);
+                        }
+                      }}
+                      className="p-1.5 text-theme-text-secondary hover:text-theme-text hover:bg-theme-surface rounded-lg transition-colors"
+                      title="Dismiss"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <GreetingClock 
+                username={displayUsername} 
+                isViewingShared={isViewingShared}
+                sharedUsername={sharedData?.username}
+              />
             </motion.div>
 
             {/* Grid Section */}
@@ -678,11 +759,19 @@ function App() {
           categoryName={activeCategory?.name || (editingLink ? 'Edit Link' : '')}
           initialData={editingLink}
         />
-        <BulkAddModal
+        <BulkAddModal 
           isOpen={isBulkAddModalOpen}
           onClose={() => setIsBulkAddModalOpen(false)}
           onSave={handleBulkAddLinks}
           categories={categories}
+        />
+        <SavedArsenalsModal 
+          isOpen={isSavedArsenalsModalOpen}
+          onClose={() => setIsSavedArsenalsModalOpen(false)}
+          savedArsenals={savedArsenals}
+          viewingSavedId={viewingSavedId}
+          onSelectArsenal={handleSelectArsenal}
+          onDeleteSavedArsenal={handleDeleteSavedArsenal}
         />
         <CategoryIconPickerModal
           isOpen={isCategoryIconPickerOpen}

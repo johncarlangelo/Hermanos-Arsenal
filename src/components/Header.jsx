@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Palette, Share2, Download, Upload, LogOut, ChevronDown, Command, Search, Layers, Plus, Settings } from 'lucide-react';
+import { Palette, Share2, Download, Upload, LogOut, ChevronDown, Command, Search, Layers, Plus, Settings, Trash2, Check, Archive, Save } from 'lucide-react';
 import { /* eslint-disable-line no-unused-vars */ motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
@@ -16,7 +16,9 @@ export default function Header({
   onSearchClick,
   onOpenBulkAdd,
   onOpenAddCategory,
-  onOpenSettings
+  onOpenSettings,
+  onOpenSavedArsenals,
+  viewingSavedId = null
 }) {
   const fileInputRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -98,6 +100,24 @@ export default function Header({
             <Palette size={18} />
           </button>
           
+          {isViewingShared && (
+            <button 
+              onClick={onReturnToOwn}
+              className="h-10 px-3 sm:px-4 flex items-center gap-2 rounded-xl bg-theme-surface/50 hover:bg-theme-surface border border-theme-border/50 text-theme-text-secondary hover:text-theme-text transition-all text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 shadow-sm"
+            >
+              <LogOut size={16} /> <span className="hidden sm:inline">Back to My Arsenal</span>
+            </button>
+          )}
+
+          {isViewingShared && viewingSavedId === null && (
+            <button 
+              onClick={onSaveShared}
+              className="h-10 px-3 sm:px-4 flex items-center gap-2 rounded-xl bg-theme-primary text-white hover:opacity-90 transition-all text-sm font-semibold hover:-translate-y-0.5 active:translate-y-0 shadow-sm shadow-theme-primary/20"
+            >
+              <Save size={16} /> <span className="hidden sm:inline">Save</span>
+            </button>
+          )}
+
           <div className="relative">
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -117,29 +137,29 @@ export default function Header({
                   transition={{ type: "spring", duration: 0.4, bounce: 0 }}
                   className="absolute right-0 mt-3 w-56 rounded-2xl glass-panel overflow-hidden py-2 z-50 transform-origin-top-right border border-theme-border/60"
                 >
+                  {/* Dropdown Content */}
+                  <button 
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-theme-text hover:bg-theme-primary/10 hover:text-theme-primary transition-colors group"
+                    onClick={() => {
+                      onOpenSavedArsenals();
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <Archive size={16} className="text-theme-text-secondary group-hover:text-theme-primary transition-colors" />
+                    Saved Arsenals
+                  </button>
+
                   {isViewingShared ? (
-                    <>
-                      <button 
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-theme-text hover:bg-theme-primary/10 hover:text-theme-primary transition-colors group border-b border-theme-border/50"
-                        onClick={() => {
-                          onSaveShared();
-                          setIsMenuOpen(false);
-                        }}
-                      >
-                        <Download size={16} className="text-theme-text-secondary group-hover:text-theme-primary transition-colors" />
-                        Save to My Arsenal
-                      </button>
-                      <button 
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-theme-text hover:bg-theme-primary/10 hover:text-theme-primary transition-colors group"
-                        onClick={() => {
-                          onReturnToOwn();
-                          setIsMenuOpen(false);
-                        }}
-                      >
-                        <LogOut size={16} className="text-theme-text-secondary group-hover:text-theme-primary transition-colors" />
-                        Back to My Arsenal
-                      </button>
-                    </>
+                    <button 
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-theme-text hover:bg-theme-primary/10 hover:text-theme-primary transition-colors group"
+                      onClick={() => {
+                        onExport();
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <Download size={16} className="text-theme-text-secondary group-hover:text-theme-primary transition-colors" />
+                      Export Data
+                    </button>
                   ) : (
                     <>
                       <div className="px-4 py-2 mb-2 border-b border-theme-border/50">
@@ -180,7 +200,6 @@ export default function Header({
                         <Settings size={16} className="text-theme-text-secondary group-hover:text-theme-primary transition-colors" />
                         Settings
                       </button>
-
                       <button 
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-theme-text hover:bg-theme-primary/10 hover:text-theme-primary transition-colors group"
                         onClick={() => {

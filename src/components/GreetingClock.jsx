@@ -73,7 +73,7 @@ const renderGreetingTemplate = (greetingTemplate, username) => {
   );
 };
 
-export default function GreetingClock({ username }) {
+export default function GreetingClock({ username, isViewingShared, sharedUsername }) {
   const [time, setTime] = useState(new Date());
   const [greetingTemplate, setGreetingTemplate] = useState('Welcome');
 
@@ -85,12 +85,17 @@ export default function GreetingClock({ username }) {
   }, []);
 
   useEffect(() => {
-    const pool = getGreetingPool();
-    if (pool.length > 0) {
+    if (isViewingShared) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setGreetingTemplate(pool[Math.floor(Math.random() * pool.length)]);
+      setGreetingTemplate(`Exploring {name}'s Arsenal`);
+    } else {
+      const pool = getGreetingPool();
+      if (pool.length > 0) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setGreetingTemplate(pool[Math.floor(Math.random() * pool.length)]);
+      }
     }
-  }, [username]); // Refresh greeting when username changes or component mounts
+  }, [username, isViewingShared, sharedUsername]); // Refresh greeting when dependencies change
 
   const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const dateString = time.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
@@ -109,7 +114,7 @@ export default function GreetingClock({ username }) {
         {timeString}
       </h2>
       <p className="text-xl text-theme-text/80 font-medium mt-2">
-        {renderGreetingTemplate(greetingTemplate, username)}
+        {renderGreetingTemplate(greetingTemplate, isViewingShared ? (sharedUsername || 'Friend') : username)}
       </p>
     </motion.div>
   );
