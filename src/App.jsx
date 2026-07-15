@@ -25,6 +25,7 @@ import { exportCatalogue, importCatalogue, mergeData, detectDuplicates } from '.
 import { generateShareLink, getSharedCatalogueFromUrl } from './utils/share';
 import { Plus, X, AlertTriangle, Eye } from 'lucide-react';
 import Checkbox from './components/Checkbox';
+import ThemeSplash from './components/ThemeSplash';
 
 function App() {
   const [username, setUsername] = useLocalStorage('linkdock-username', null);
@@ -60,6 +61,10 @@ function App() {
   const [contextMenu, setContextMenu] = useState(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [currentShareUrl, setCurrentShareUrl] = useState('');
+
+  // Splash Screen State
+  const [showSplash, setShowSplash] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const [hiddenOutdatedBanners, setHiddenOutdatedBanners] = useLocalStorage('linkdock-hidden-outdated-banners', []);
   const [dismissedSessionBanners, setDismissedSessionBanners] = useState([]);
@@ -246,7 +251,11 @@ function App() {
     }
   };
 
-  const handleThemeChange = (theme) => setCurrentTheme(theme);
+  const handleThemeChange = (theme) => {
+    setCurrentTheme(theme);
+    setIsInitialLoad(false);
+    setShowSplash(true);
+  };
   
   const handleClearData = () => {
     localStorage.removeItem('linkdock-username');
@@ -257,12 +266,16 @@ function App() {
     setCategories([]);
     setCurrentTheme(defaultThemes.midnight);
     setCustomThemes({});
+    setIsInitialLoad(false);
+    setShowSplash(true);
   };
 
   const handleSaveCustomTheme = (theme) => {
     const newThemes = { ...customThemes, [theme.name.toLowerCase().replace(/\s+/g, '-')]: theme };
     setCustomThemes(newThemes);
     setCurrentTheme(theme);
+    setIsInitialLoad(false);
+    setShowSplash(true);
   };
   const handleDeleteCustomTheme = (themeKey) => {
     const newThemes = { ...customThemes };
@@ -270,6 +283,8 @@ function App() {
     setCustomThemes(newThemes);
     if (currentTheme.name === customThemes[themeKey].name) {
       setCurrentTheme(defaultThemes.midnight);
+      setIsInitialLoad(false);
+      setShowSplash(true);
     }
   };
   
@@ -545,6 +560,13 @@ function App() {
 
   return (
     <LayoutGroup>
+      {showSplash && (
+        <ThemeSplash 
+          themeName={currentTheme.name} 
+          isInitialLoad={isInitialLoad} 
+          onComplete={() => setShowSplash(false)} 
+        />
+      )}
       <div className="relative min-h-screen bg-theme-background text-theme-text selection:bg-theme-primary/30 font-sans">
         <AnimatedBackground themeName={currentTheme.name} />
 
