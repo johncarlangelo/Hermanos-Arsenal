@@ -65,6 +65,10 @@ function App() {
   // Splash Screen State
   const [showSplash, setShowSplash] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [pendingTheme, setPendingTheme] = useState(null);
+  
+  // Preferences
+  const [enableThemeAnimation, setEnableThemeAnimation] = useLocalStorage('linkdock-theme-animation', true);
 
   const [hiddenOutdatedBanners, setHiddenOutdatedBanners] = useLocalStorage('linkdock-hidden-outdated-banners', []);
   const [dismissedSessionBanners, setDismissedSessionBanners] = useState([]);
@@ -251,11 +255,17 @@ function App() {
     }
   };
 
-  const handleThemeChange = (theme) => {
-    setCurrentTheme(theme);
-    setIsInitialLoad(false);
-    setShowSplash(true);
+  const triggerThemeChange = (theme) => {
+    if (enableThemeAnimation) {
+      setPendingTheme(theme);
+      setIsInitialLoad(false);
+      setShowSplash(true);
+    } else {
+      setCurrentTheme(theme);
+    }
   };
+
+  const handleThemeChange = (theme) => triggerThemeChange(theme);
   
   const handleClearData = () => {
     localStorage.removeItem('linkdock-username');
@@ -264,27 +274,21 @@ function App() {
     localStorage.removeItem('linkdock-custom-themes');
     setUsername(null);
     setCategories([]);
-    setCurrentTheme(defaultThemes.midnight);
     setCustomThemes({});
-    setIsInitialLoad(false);
-    setShowSplash(true);
+    triggerThemeChange(defaultThemes.midnight);
   };
 
   const handleSaveCustomTheme = (theme) => {
     const newThemes = { ...customThemes, [theme.name.toLowerCase().replace(/\s+/g, '-')]: theme };
     setCustomThemes(newThemes);
-    setCurrentTheme(theme);
-    setIsInitialLoad(false);
-    setShowSplash(true);
+    triggerThemeChange(theme);
   };
   const handleDeleteCustomTheme = (themeKey) => {
     const newThemes = { ...customThemes };
     delete newThemes[themeKey];
     setCustomThemes(newThemes);
     if (currentTheme.name === customThemes[themeKey].name) {
-      setCurrentTheme(defaultThemes.midnight);
-      setIsInitialLoad(false);
-      setShowSplash(true);
+      triggerThemeChange(defaultThemes.midnight);
     }
   };
   
@@ -562,8 +566,13 @@ function App() {
     <LayoutGroup>
       {showSplash && (
         <ThemeSplash 
-          themeName={currentTheme.name} 
           isInitialLoad={isInitialLoad} 
+          onDoorsClosed={() => {
+            if (pendingTheme) {
+              setCurrentTheme(pendingTheme);
+              setPendingTheme(null);
+            }
+          }}
           onComplete={() => setShowSplash(false)} 
         />
       )}
@@ -814,6 +823,8 @@ function App() {
           username={username}
           onUpdateUsername={setUsername}
           onClearData={handleClearData}
+          enableThemeAnimation={enableThemeAnimation}
+          onToggleThemeAnimation={(val) => setEnableThemeAnimation(val)}
         />
         <ContextMenu 
           menu={contextMenu} 

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { /* eslint-disable-line no-unused-vars */ motion, AnimatePresence } from 'motion/react';
-import { X, Settings, User, Trash2 } from 'lucide-react';
+import { X, Settings, User, Trash2, Sliders } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ToggleSwitch from './ToggleSwitch';
 
-export default function SettingsModal({ isOpen, onClose, username, onUpdateUsername, onClearData }) {
+export default function SettingsModal({ isOpen, onClose, username, onUpdateUsername, onClearData, enableThemeAnimation, onToggleThemeAnimation }) {
   const [name, setName] = useState(username || '');
   const [activeTab, setActiveTab] = useState('profile');
 
@@ -67,6 +68,14 @@ export default function SettingsModal({ isOpen, onClose, username, onUpdateUsern
                 <User size={16} />
                 <span className="hidden sm:inline">Profile</span>
               </button>
+
+              <button
+                onClick={() => setActiveTab('preferences')}
+                className={`flex-1 sm:flex-none flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'preferences' ? 'bg-theme-primary text-white shadow-lg shadow-theme-primary/20' : 'text-theme-text-secondary hover:text-theme-text hover:bg-theme-border/50'}`}
+              >
+                <Sliders size={16} />
+                <span className="hidden sm:inline">Preferences</span>
+              </button>
               
               <button
                 onClick={() => setActiveTab('data')}
@@ -122,6 +131,36 @@ export default function SettingsModal({ isOpen, onClose, username, onUpdateUsern
                       Save Changes
                     </button>
                   </form>
+                </motion.div>
+              )}
+
+              {activeTab === 'preferences' && (
+                <motion.div
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="space-y-6"
+                >
+                  <div>
+                    <h2 className="text-2xl font-display font-bold text-theme-text mb-2">Preferences</h2>
+                    <p className="text-theme-text-secondary text-sm mb-6">Customize your experience.</p>
+                  </div>
+                  
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between p-4 bg-theme-background/30 rounded-xl border border-theme-border/50">
+                      <div>
+                        <h4 className="text-theme-text font-medium">Theme Switching Animation</h4>
+                        <p className="text-theme-text-secondary text-sm">Show the splash screen when switching between themes to hide visual lag.</p>
+                      </div>
+                      <div className="ml-4">
+                        <ToggleSwitch 
+                          checked={enableThemeAnimation}
+                          onChange={(e) => onToggleThemeAnimation(e.target.checked)}
+                          colorClass="bg-theme-primary"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </motion.div>
               )}
 

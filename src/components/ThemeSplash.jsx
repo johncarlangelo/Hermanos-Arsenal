@@ -2,32 +2,53 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Layers } from 'lucide-react';
 
-export default function ThemeSplash({ onComplete, isInitialLoad }) {
-  const [stage, setStage] = useState('visible');
+export default function ThemeSplash({ onComplete, isInitialLoad, onDoorsClosed }) {
+  // Initial load starts closed. Theme switch starts by animating from open to closed.
+  const [stage, setStage] = useState(isInitialLoad ? 'closed' : 'closing');
 
   useEffect(() => {
-    // Slower timing as requested (~1.5s hold before action)
-    const textFadeTimer = setTimeout(() => {
-      setStage('text-fade');
-    }, isInitialLoad ? 1800 : 1200);
+    if (isInitialLoad) {
+      const textFadeTimer = setTimeout(() => setStage('text-fade'), 1800);
+      const doorOpenTimer = setTimeout(() => setStage('door-open'), 2200);
+      const completeTimer = setTimeout(() => onComplete(), 3400);
 
-    const doorOpenTimer = setTimeout(() => {
-      setStage('door-open');
-    }, isInitialLoad ? 2200 : 1500);
+      return () => {
+        clearTimeout(textFadeTimer);
+        clearTimeout(doorOpenTimer);
+        clearTimeout(completeTimer);
+      };
+    } else {
+      // Theme change transition
+      const closeDuration = 1000; 
 
-    const completeTimer = setTimeout(() => {
-      onComplete();
-    }, isInitialLoad ? 3400 : 2700);
+      const closedTimer = setTimeout(() => {
+        setStage('closed'); // Fully closed
+        if (onDoorsClosed) onDoorsClosed(); // Trigger the actual CSS theme change!
+      }, closeDuration);
 
-    return () => {
-      clearTimeout(textFadeTimer);
-      clearTimeout(doorOpenTimer);
-      clearTimeout(completeTimer);
-    };
-  }, [onComplete, isInitialLoad]);
+      const textFadeTimer = setTimeout(() => {
+        setStage('text-fade');
+      }, closeDuration + 1200);
+
+      const doorOpenTimer = setTimeout(() => {
+        setStage('door-open');
+      }, closeDuration + 1600);
+
+      const completeTimer = setTimeout(() => {
+        onComplete();
+      }, closeDuration + 2800);
+
+      return () => {
+        clearTimeout(closedTimer);
+        clearTimeout(textFadeTimer);
+        clearTimeout(doorOpenTimer);
+        clearTimeout(completeTimer);
+      };
+    }
+  }, [onComplete, isInitialLoad, onDoorsClosed]);
 
   const areDoorsOpen = stage === 'door-open';
-  const showText = stage === 'visible';
+  const showText = stage === 'closed';
 
   const DoorPanel = ({ isLeft }) => (
     <div className={`w-[calc(100%-3rem)] h-[calc(100%-6rem)] border-2 border-theme-border/40 rounded-3xl m-8 ${isLeft ? 'mr-4' : 'ml-4'} p-8 flex flex-col justify-between relative overflow-hidden shadow-inner bg-theme-surface/50 backdrop-blur-md`}>
@@ -50,9 +71,9 @@ export default function ThemeSplash({ onComplete, isInitialLoad }) {
     <div className="fixed inset-0 z-[9999] overflow-hidden pointer-events-none select-none flex">
       {/* Left Door */}
       <motion.div
-        initial={{ x: 0 }}
+        initial={isInitialLoad ? { x: 0 } : { x: '-100%' }}
         animate={{ x: areDoorsOpen ? '-100%' : 0 }}
-        transition={{ duration: 1.2, ease: [0.85, 0, 0.15, 1] }}
+        transition={{ duration: 1.0, ease: [0.85, 0, 0.15, 1] }}
         className="w-1/2 h-full bg-theme-background border-r-2 border-theme-border shadow-[20px_0_40px_rgba(0,0,0,0.5)] pointer-events-auto relative z-10 flex items-center justify-end"
       >
         <div 
@@ -67,9 +88,9 @@ export default function ThemeSplash({ onComplete, isInitialLoad }) {
 
       {/* Right Door */}
       <motion.div
-        initial={{ x: 0 }}
+        initial={isInitialLoad ? { x: 0 } : { x: '100%' }}
         animate={{ x: areDoorsOpen ? '100%' : 0 }}
-        transition={{ duration: 1.2, ease: [0.85, 0, 0.15, 1] }}
+        transition={{ duration: 1.0, ease: [0.85, 0, 0.15, 1] }}
         className="w-1/2 h-full bg-theme-background border-l-2 border-theme-border shadow-[-20px_0_40px_rgba(0,0,0,0.5)] pointer-events-auto relative z-10 flex items-center justify-start"
       >
         <div 
