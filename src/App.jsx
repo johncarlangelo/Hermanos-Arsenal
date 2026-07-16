@@ -23,6 +23,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { defaultThemes, applyTheme } from './utils/theme';
 import { exportCatalogue, importCatalogue, mergeData, detectDuplicates } from './utils/export';
 import { generateShareLink, getSharedCatalogueFromUrl } from './utils/share';
+import { playSfx } from './utils/sounds';
 import { Plus, X, AlertTriangle, Eye } from 'lucide-react';
 import Checkbox from './components/Checkbox';
 import ThemeSplash from './components/ThemeSplash';
@@ -69,6 +70,7 @@ function App() {
   
   // Preferences
   const [enableThemeAnimation, setEnableThemeAnimation] = useLocalStorage('linkdock-theme-animation', true);
+  const [enableSoundEffects, setEnableSoundEffects] = useLocalStorage('linkdock-sound-enabled', true);
 
   const [hiddenOutdatedBanners, setHiddenOutdatedBanners] = useLocalStorage('linkdock-hidden-outdated-banners', []);
   const [dismissedSessionBanners, setDismissedSessionBanners] = useState([]);
@@ -389,6 +391,7 @@ function App() {
               setCategories(categories.filter(cat => cat.id !== id));
               toast.dismiss(t.id);
               toast.success(`Deleted "${categoryName}"`);
+              playSfx('trash');
             }}
             className="px-4 py-1.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600"
           >
@@ -432,6 +435,7 @@ function App() {
   const handleDeleteLink = (categoryId, linkId) => {
     let linkToRestore = null;
     let linkIndex = -1;
+    playSfx('trash');
 
     setCategories(prev => {
       const category = prev.find(cat => cat.id === categoryId);
@@ -824,7 +828,9 @@ function App() {
           onUpdateUsername={setUsername}
           onClearData={handleClearData}
           enableThemeAnimation={enableThemeAnimation}
-          onToggleThemeAnimation={(val) => setEnableThemeAnimation(val)}
+          onToggleThemeAnimation={setEnableThemeAnimation}
+          enableSoundEffects={enableSoundEffects}
+          onToggleSoundEffects={setEnableSoundEffects}
         />
         <ContextMenu 
           menu={contextMenu} 

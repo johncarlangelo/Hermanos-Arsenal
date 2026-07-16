@@ -4,7 +4,7 @@ import { X, Settings, User, Trash2, Sliders } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ToggleSwitch from './ToggleSwitch';
 
-export default function SettingsModal({ isOpen, onClose, username, onUpdateUsername, onClearData, enableThemeAnimation, onToggleThemeAnimation }) {
+export default function SettingsModal({ isOpen, onClose, username, onUpdateUsername, onClearData, enableThemeAnimation, onToggleThemeAnimation, enableSoundEffects, onToggleSoundEffects }) {
   const [name, setName] = useState(username || '');
   const [activeTab, setActiveTab] = useState('profile');
 
@@ -147,6 +147,20 @@ export default function SettingsModal({ isOpen, onClose, username, onUpdateUsern
                   </div>
                   
                   <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between p-4 bg-theme-background/30 rounded-xl border border-theme-border/50">
+                      <div>
+                        <h4 className="text-theme-text font-medium">UI Sound Effects</h4>
+                        <p className="text-theme-text-secondary text-sm">Play subtle audio feedback on actions.</p>
+                      </div>
+                      <div className="ml-4">
+                        <ToggleSwitch 
+                          checked={enableSoundEffects}
+                          onChange={(e) => onToggleSoundEffects(e.target.checked)}
+                          colorClass="bg-theme-primary"
+                        />
+                      </div>
+                    </div>
+
                     <div className="flex items-center justify-between p-4 bg-theme-background/30 rounded-xl border border-theme-border/50">
                       <div>
                         <h4 className="text-theme-text font-medium">Theme Switching Animation</h4>

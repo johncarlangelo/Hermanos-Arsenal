@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { /* eslint-disable-line no-unused-vars */ motion, AnimatePresence } from 'motion/react';
 import { X, Link as LinkIcon } from 'lucide-react';
+import { playSfx } from '../utils/sounds';
 import { fetchMetadata } from '../utils/metadata';
 
 export default function AddLinkModal({ isOpen, onClose, onSave, categoryName, initialData }) {
@@ -74,6 +75,7 @@ export default function AddLinkModal({ isOpen, onClose, onSave, categoryName, in
   const handleSubmit = (e) => {
     e.preventDefault();
     if (url.trim() && name.trim()) {
+      playSfx('pop');
       let finalUrl = url.trim();
       if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
         if (finalUrl.includes('.')) {

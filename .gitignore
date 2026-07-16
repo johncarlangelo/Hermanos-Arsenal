@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Planned features (not tracked)
+UPCOMING_FEATURES.md

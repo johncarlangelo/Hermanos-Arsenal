@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { /* eslint-disable-line no-unused-vars */ motion, AnimatePresence } from 'motion/react';
 import { X, FolderPlus } from 'lucide-react';
+import { playSfx } from '../utils/sounds';
 
 export default function AddCategoryModal({ isOpen, onClose, onSave }) {
   const [name, setName] = useState('');
@@ -8,6 +9,7 @@ export default function AddCategoryModal({ isOpen, onClose, onSave }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (name.trim()) {
+      playSfx('pop');
       onSave(name.trim());
       setName('');
       onClose();

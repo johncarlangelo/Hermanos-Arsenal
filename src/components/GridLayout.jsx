@@ -17,6 +17,7 @@ import {
 import { useState } from 'react';
 import Category from './Category';
 import DragOverlayItem from './DragOverlayItem';
+import { playSfx } from '../utils/sounds';
 
 export default function GridLayout({ categories, setCategories, onRename, onDelete, onAddLink, onDeleteLink, children }) {
   const [activeId, setActiveId] = useState(null);
@@ -35,6 +36,7 @@ export default function GridLayout({ categories, setCategories, onRename, onDele
   );
 
   const handleDragStart = (event) => {
+    playSfx('swoosh');
     const { active } = event;
     setActiveId(active.id);
     setActiveType(active.data.current?.type);
@@ -117,6 +119,7 @@ export default function GridLayout({ categories, setCategories, onRename, onDele
   };
 
   const handleDragEnd = (event) => {
+    playSfx('snap');
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
