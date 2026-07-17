@@ -25,3 +25,6 @@ dist-ssr
 
 # Planned features (not tracked)
 UPCOMING_FEATURES.md
+
+# Agent config
+.agents
