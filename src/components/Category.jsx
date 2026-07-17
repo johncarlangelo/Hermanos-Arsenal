@@ -4,6 +4,7 @@ import * as LucideIcons from 'lucide-react';
 import { /* eslint-disable-line no-unused-vars */ motion, AnimatePresence } from 'motion/react';
 import SortableLink from './SortableLink';
 import ResizeIcon from './ResizeIcon';
+import { playSfx } from '../utils/sounds';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 
@@ -29,6 +30,7 @@ export default function Category({
   const [isHovered, setIsHovered] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [rawSize, setRawSize] = useState(null);
   
   const defaultSize = { width: 400, height: 400 };
   const [localSize, setLocalSize] = useState(size || defaultSize);
@@ -52,20 +54,36 @@ export default function Category({
     const startWidth = localSize.width;
     const startHeight = localSize.height;
     
+    let lastSnappedWidth = startWidth;
+    let lastSnappedHeight = startHeight;
+    
     const handleMouseMove = (moveEvent) => {
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
       
-      setLocalSize({
-        width: Math.max(280, startWidth + deltaX),
-        height: Math.max(200, startHeight + deltaY)
-      });
+      const rawW = Math.max(280, startWidth + deltaX);
+      const rawH = Math.max(200, startHeight + deltaY);
+      
+      setRawSize({ width: rawW, height: rawH });
+      
+      const step = 86; // 4 steps per column (344px / 4)
+      const snappedW = Math.max(320, 320 + Math.round((rawW - 320) / step) * step);
+      
+      const snappedH = Math.max(200, Math.round(rawH / 100) * 100);
+      
+      if (snappedW !== lastSnappedWidth || snappedH !== lastSnappedHeight) {
+        playSfx('tick');
+        lastSnappedWidth = snappedW;
+        lastSnappedHeight = snappedH;
+        setLocalSize({ width: snappedW, height: snappedH });
+      }
     };
     
     const handleMouseUp = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
       setIsResizing(false);
+      setRawSize(null);
       
       setLocalSize((currentSize) => {
         if (onResize) onResize(id, currentSize);
@@ -143,6 +161,14 @@ export default function Category({
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 200, damping: 25 }}
     >
+      {/* Resizing Preview Overlay */}
+      {rawSize && (
+        <div 
+          className="absolute top-0 left-0 border-2 border-dashed border-theme-primary/60 rounded-[2rem] pointer-events-none z-50 bg-theme-primary/5 transition-none"
+          style={{ width: rawSize.width, height: rawSize.height }}
+        />
+      )}
+
       {/* Glossy top highlight */}
       <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent z-30" />
 
