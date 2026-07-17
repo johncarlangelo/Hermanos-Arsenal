@@ -49,6 +49,11 @@ export default function Category({
     
     setIsResizing(true);
     
+    const categoryEl = e.currentTarget.closest('.glass-card');
+    const categoryLeft = categoryEl ? categoryEl.getBoundingClientRect().left : 24;
+    const maxAvailableWidth = typeof window !== 'undefined' ? window.innerWidth - categoryLeft - 24 : 2040;
+    const absoluteMaxWidth = Math.max(320, maxAvailableWidth);
+    
     const startX = e.clientX;
     const startY = e.clientY;
     const startWidth = localSize.width;
@@ -61,13 +66,16 @@ export default function Category({
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
       
-      const rawW = Math.max(280, startWidth + deltaX);
+      const rawW = Math.max(280, Math.min(startWidth + deltaX, absoluteMaxWidth));
       const rawH = Math.max(200, startHeight + deltaY);
       
       setRawSize({ width: rawW, height: rawH });
       
       const step = 86; // 4 steps per column (344px / 4)
-      const snappedW = Math.max(320, 320 + Math.round((rawW - 320) / step) * step);
+      let snappedW = Math.max(320, 320 + Math.round((rawW - 320) / step) * step);
+      
+      // Prevent exceeding maximum available space on screen
+      snappedW = Math.min(snappedW, absoluteMaxWidth);
       
       const snappedH = Math.max(200, Math.round(rawH / 100) * 100);
       
