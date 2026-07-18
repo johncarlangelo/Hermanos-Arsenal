@@ -74,7 +74,15 @@ function App() {
   const [isPinSetupOpen, setIsPinSetupOpen] = useState(false);
   const [isPinAuthOpen, setIsPinAuthOpen] = useState(false);
   const [isPinRecoveryOpen, setIsPinRecoveryOpen] = useState(false);
-  const [preVaultTheme, setPreVaultTheme] = useState(null);
+  const [preVaultTheme, setPreVaultTheme] = useLocalStorage('linkdock-prevault-theme', null);
+
+  // Revert Incognito theme on reload if not in private view
+  useEffect(() => {
+    if (currentTheme?.name === 'Incognito' && !isPrivateView) {
+      setCurrentTheme(preVaultTheme || defaultThemes.midnight);
+      setPreVaultTheme(null);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Migration for plain text PIN
   useEffect(() => {
