@@ -9,7 +9,9 @@ import LZString from 'lz-string';
 function toCompact(data) {
   if (!data) return data;
   
-  const compactCategories = (data.categories || []).map(cat => {
+  const publicCategories = (data.categories || []).filter(cat => !cat.isPrivate);
+  
+  const compactCategories = publicCategories.map(cat => {
     const compactLinks = (cat.links || []).map(link => [
       link.id,
       link.name,

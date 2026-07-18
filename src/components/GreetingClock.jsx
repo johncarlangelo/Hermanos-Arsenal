@@ -73,7 +73,7 @@ const renderGreetingTemplate = (greetingTemplate, username) => {
   );
 };
 
-export default function GreetingClock({ username, isViewingShared, sharedUsername }) {
+export default function GreetingClock({ username, isViewingShared, sharedUsername, isPrivateView }) {
   const [time, setTime] = useState(new Date());
   const [greetingTemplate, setGreetingTemplate] = useState('Welcome');
 
@@ -85,17 +85,22 @@ export default function GreetingClock({ username, isViewingShared, sharedUsernam
   }, []);
 
   useEffect(() => {
-    if (isViewingShared) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (isPrivateView) {
+      const incognitoPool = greetingsData.custom.incognito || [];
+      if (incognitoPool.length > 0) {
+        setGreetingTemplate(incognitoPool[Math.floor(Math.random() * incognitoPool.length)]);
+      } else {
+        setGreetingTemplate("Going dark, stranger?");
+      }
+    } else if (isViewingShared) {
       setGreetingTemplate(`Exploring {name}'s Arsenal`);
     } else {
       const pool = getGreetingPool();
       if (pool.length > 0) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setGreetingTemplate(pool[Math.floor(Math.random() * pool.length)]);
       }
     }
-  }, [username, isViewingShared, sharedUsername]); // Refresh greeting when dependencies change
+  }, [username, isViewingShared, sharedUsername, isPrivateView]);
 
   const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const dateString = time.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });

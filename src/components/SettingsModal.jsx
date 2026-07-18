@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { /* eslint-disable-line no-unused-vars */ motion, AnimatePresence } from 'motion/react';
-import { X, Settings, User, Trash2, Sliders } from 'lucide-react';
+import { X, Settings, User, Trash2, Sliders, Lock, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ToggleSwitch from './ToggleSwitch';
+import ConfirmationModal from './ConfirmationModal';
 
-export default function SettingsModal({ isOpen, onClose, username, onUpdateUsername, onClearData, enableThemeAnimation, onToggleThemeAnimation, enableSoundEffects, onToggleSoundEffects }) {
+export default function SettingsModal({ isOpen, onClose, username, onUpdateUsername, onClearData, onDeleteVault, enableThemeAnimation, onToggleThemeAnimation, enableSoundEffects, onToggleSoundEffects }) {
   const [name, setName] = useState(username || '');
   const [activeTab, setActiveTab] = useState('profile');
+  const [confirmClearDataOpen, setConfirmClearDataOpen] = useState(false);
+  const [confirmDeleteVaultOpen, setConfirmDeleteVaultOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -26,14 +29,23 @@ export default function SettingsModal({ isOpen, onClose, username, onUpdateUsern
   };
 
   const handleClearData = () => {
-    if (window.confirm('Are you sure you want to delete all your data? This cannot be undone.')) {
-      onClearData();
-      toast.success('All data cleared');
-      onClose();
+    onClearData();
+    toast.success('All data cleared');
+    setConfirmClearDataOpen(false);
+    onClose();
+  };
+
+  const handleDeleteVault = () => {
+    if (onDeleteVault) {
+      onDeleteVault();
     }
+    toast.success('Private Vault deleted');
+    setConfirmDeleteVaultOpen(false);
+    onClose();
   };
 
   return (
+    <>
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -189,6 +201,21 @@ export default function SettingsModal({ isOpen, onClose, username, onUpdateUsern
                     <h2 className="text-2xl font-display font-bold text-theme-text mb-2">Data Management</h2>
                     <p className="text-theme-text-secondary text-sm mb-6">Manage your local browser data.</p>
                   </div>
+
+                  <div className="p-5 rounded-2xl border border-orange-500/20 bg-orange-500/5 mb-4">
+                    <h4 className="text-orange-500 font-semibold mb-2 flex items-center gap-2">
+                      <Lock size={16} /> Delete Private Vault
+                    </h4>
+                    <p className="text-sm text-theme-text-secondary mb-4">
+                      Delete your Vault PIN, Backup Phrase, and all private categories. This action is irreversible.
+                    </p>
+                    <button
+                      onClick={() => setConfirmDeleteVaultOpen(true)}
+                      className="py-2.5 px-5 text-sm font-semibold bg-orange-500 text-white rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all"
+                    >
+                      Delete Vault
+                    </button>
+                  </div>
                   
                   <div className="p-5 rounded-2xl border border-red-500/20 bg-red-500/5">
                     <h4 className="text-red-500 font-semibold mb-2 flex items-center gap-2">
@@ -198,7 +225,7 @@ export default function SettingsModal({ isOpen, onClose, username, onUpdateUsern
                       Permanently delete all categories, links, custom themes, and your profile data from this browser. This action is irreversible.
                     </p>
                     <button
-                      onClick={handleClearData}
+                      onClick={() => setConfirmClearDataOpen(true)}
                       className="py-2.5 px-5 text-sm font-semibold bg-red-500 text-white rounded-xl shadow-lg shadow-red-500/20 hover:shadow-red-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all"
                     >
                       Clear All Data
@@ -211,5 +238,28 @@ export default function SettingsModal({ isOpen, onClose, username, onUpdateUsern
         </div>
       )}
     </AnimatePresence>
+    
+    {/* Confirmations rendered outside the main modal so they overlay it */}
+    <ConfirmationModal
+      isOpen={confirmClearDataOpen}
+      onClose={() => setConfirmClearDataOpen(false)}
+      onConfirm={handleClearData}
+      title="Clear All Data"
+      message="Are you sure you want to delete all your data? This includes your profile, custom themes, categories, and links. This cannot be undone."
+      confirmText="Clear Data"
+      isDestructive={true}
+    />
+    
+    <ConfirmationModal
+      isOpen={confirmDeleteVaultOpen}
+      onClose={() => setConfirmDeleteVaultOpen(false)}
+      onConfirm={handleDeleteVault}
+      title="Delete Private Vault"
+      message="Are you sure you want to delete your Private Vault and all its contents? This includes your PIN, recovery phrase, and private categories. This cannot be undone."
+      confirmText="Delete Vault"
+      isDestructive={true}
+      icon={Lock}
+    />
+    </>
   );
 }

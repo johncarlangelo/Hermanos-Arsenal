@@ -2,7 +2,11 @@
  * Export catalogue data as JSON file
  */
 export function exportCatalogue(catalogueData, username) {
-  const dataStr = JSON.stringify(catalogueData, null, 2);
+  const safeData = {
+    ...catalogueData,
+    categories: (catalogueData.categories || []).filter(cat => !cat.isPrivate)
+  };
+  const dataStr = JSON.stringify(safeData, null, 2);
   const dataBlob = new Blob([dataStr], { type: 'application/json' });
   
   const url = URL.createObjectURL(dataBlob);

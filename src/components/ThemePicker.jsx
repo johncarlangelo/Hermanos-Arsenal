@@ -120,7 +120,9 @@ export default function ThemePicker({
                   <section>
                     <h3 className="text-sm font-semibold text-theme-text-secondary tracking-wider uppercase mb-4">Default Themes</h3>
                     <div className="grid grid-cols-2 gap-3">
-                      {Object.entries(defaultThemes).map(([key, theme]) => (
+                      {Object.entries(defaultThemes)
+                        .filter(([key]) => key !== 'incognito')
+                        .map(([key, theme]) => (
                         <ThemeCard
                           key={key}
                           theme={theme}

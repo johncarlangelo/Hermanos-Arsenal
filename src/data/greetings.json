@@ -118,6 +118,28 @@
       "What are we breaking today, {name}?",
       "Let's fix something, {name}.",
       "New project, who dis, {name}?"
+    ],
+    "incognito": [
+      "Going dark, stranger?",
+      "Ghost mode activated.",
+      "Off the record, traveler.",
+      "Nobody saw that.",
+      "Incognito, shadow?",
+      "No trace left behind.",
+      "This session forgets itself.",
+      "Just us in here, phantom.",
+      "Private session, stranger.",
+      "Under the radar.",
+      "No history, no questions, traveler.",
+      "Stealth mode: on.",
+      "Whatever happens here, stays here.",
+      "Cloaked and ready, shadow.",
+      "Shh, stranger.",
+      "Off the grid for a bit?",
+      "No cookies, no crumbs, phantom.",
+      "Session ends, memory clears.",
+      "Low profile mode, wanderer.",
+      "You're a ghost right now."
     ]
   }
 }

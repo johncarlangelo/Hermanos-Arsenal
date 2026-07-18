@@ -98,7 +98,12 @@ export const defaultThemes = {
   highContrast: {
     name: 'High Contrast',
     colors: { primary: '#ffff00', secondary: '#ff00ff', background: '#000000', surface: '#000000', text: '#ffffff', textSecondary: '#cccccc', border: '#ffffff', hover: '#ffffff', hoverText: '#000000' }
-  },
+  }
+};
+
+export const incognitoTheme = {
+  name: 'Incognito',
+  colors: { primary: '#5f6368', secondary: '#3c4043', background: '#202124', surface: '#292a2d', text: '#f1f3f4', textSecondary: '#9aa0a6', border: '#3c4043', hover: '#3c4043', hoverText: '#ffffff' }
 };
 
 /**

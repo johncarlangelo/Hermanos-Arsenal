@@ -14,16 +14,20 @@ import BulkAddModal from './components/BulkAddModal';
 import SettingsModal from './components/SettingsModal';
 import CategoryIconPickerModal from './components/CategoryIconPickerModal';
 import SavedArsenalsModal from './components/SavedArsenalsModal';
+import PinSetupModal from './components/PinSetupModal';
+import PinAuthModal from './components/PinAuthModal';
 import ContextMenu from './components/ContextMenu';
 import AnimatedBackground from './components/AnimatedBackground';
 import GreetingClock from './components/GreetingClock';
 import SearchOverlay from './components/SearchOverlay';
 import UndoToast from './components/UndoToast';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { defaultThemes, applyTheme } from './utils/theme';
+import { defaultThemes, incognitoTheme, applyTheme } from './utils/theme';
 import { exportCatalogue, importCatalogue, mergeData, detectDuplicates } from './utils/export';
 import { generateShareLink, getSharedCatalogueFromUrl } from './utils/share';
 import { playSfx } from './utils/sounds';
+import { hashString } from './utils/crypto';
+import PinRecoveryModal from './components/PinRecoveryModal';
 import { Plus, X, AlertTriangle, Eye } from 'lucide-react';
 import Checkbox from './components/Checkbox';
 import ThemeSplash from './components/ThemeSplash';
@@ -62,6 +66,25 @@ function App() {
   const [contextMenu, setContextMenu] = useState(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [currentShareUrl, setCurrentShareUrl] = useState('');
+
+  // Private Vault State
+  const [vaultPin, setVaultPin] = useLocalStorage('linkdock-vault-pin', null);
+  const [vaultBackupHash, setVaultBackupHash] = useLocalStorage('linkdock-vault-backup', null);
+  const [isPrivateView, setIsPrivateView] = useState(false);
+  const [isPinSetupOpen, setIsPinSetupOpen] = useState(false);
+  const [isPinAuthOpen, setIsPinAuthOpen] = useState(false);
+  const [isPinRecoveryOpen, setIsPinRecoveryOpen] = useState(false);
+  const [preVaultTheme, setPreVaultTheme] = useState(null);
+
+  // Migration for plain text PIN
+  useEffect(() => {
+    if (vaultPin && vaultPin.length === 4) {
+      // It's a plain text PIN, let's hash it
+      hashString(vaultPin).then(hashed => {
+        setVaultPin(hashed);
+      });
+    }
+  }, [vaultPin, setVaultPin]);
 
   // Splash Screen State
   const [showSplash, setShowSplash] = useState(true);
@@ -274,9 +297,12 @@ function App() {
     localStorage.removeItem('linkdock-categories');
     localStorage.removeItem('linkdock-current-theme');
     localStorage.removeItem('linkdock-custom-themes');
+    localStorage.removeItem('linkdock-vault-pin');
     setUsername(null);
     setCategories([]);
     setCustomThemes({});
+    setVaultPin(null);
+    setIsPrivateView(false);
     triggerThemeChange(defaultThemes.midnight);
   };
 
@@ -359,6 +385,7 @@ function App() {
       links: [],
       order: categories.length,
       size: defaultCategorySize,
+      isPrivate: isPrivateView,
       createdAt: new Date().toISOString()
     }]);
   };
@@ -562,7 +589,65 @@ function App() {
     return <UsernamePrompt isOpen={true} onSet={handleUsernameSet} onUsernameSet={handleUsernameSet} />;
   }
 
-  const displayCategories = isViewingShared ? sharedData?.categories || [] : categories;
+  const handleToggleVault = () => {
+    if (isPrivateView) {
+      // Exiting vault
+      setIsPrivateView(false);
+      if (preVaultTheme) {
+        triggerThemeChange(preVaultTheme);
+      }
+    } else {
+      // Entering vault
+      if (!vaultPin) {
+        setIsPinSetupOpen(true);
+      } else {
+        setIsPinAuthOpen(true);
+      }
+    }
+  };
+
+  const handlePinAuthSuccess = () => {
+    setIsPinAuthOpen(false);
+    setIsPrivateView(true);
+    setPreVaultTheme(currentTheme);
+    triggerThemeChange(incognitoTheme);
+  };
+
+  const handlePinSetupSuccess = async (pin, backupPhrase) => {
+    const hashedPin = await hashString(pin);
+    const hashedBackup = await hashString(backupPhrase);
+    setVaultPin(hashedPin);
+    setVaultBackupHash(hashedBackup);
+    setIsPinSetupOpen(false);
+    setIsPrivateView(true);
+    setPreVaultTheme(currentTheme);
+    triggerThemeChange(incognitoTheme);
+  };
+
+  const handleRecoverPin = async (phrase) => {
+    const hashedAttempt = await hashString(phrase);
+    if (hashedAttempt === vaultBackupHash) {
+      setIsPinRecoveryOpen(false);
+      setIsPinSetupOpen(true); // Open setup to create a new PIN
+      return true;
+    }
+    return false;
+  };
+
+  const handleDeleteVault = () => {
+    setVaultPin(null);
+    setVaultBackupHash(null);
+    setCategories(categories.filter(cat => !cat.isPrivate));
+    if (isPrivateView) {
+      setIsPrivateView(false);
+      if (preVaultTheme) triggerThemeChange(preVaultTheme);
+    }
+  };
+
+  const displayCategories = isViewingShared 
+    ? (sharedData?.categories || []) 
+    : categories.filter(c => !!c.isPrivate === isPrivateView);
+    
   const displayUsername = isViewingShared ? sharedData?.username : username;
   const activeCategory = categories.find(cat => cat.id === activeCategoryId);
 
@@ -581,7 +666,7 @@ function App() {
         />
       )}
       <div className="relative min-h-screen bg-theme-background text-theme-text selection:bg-theme-primary/30 font-sans">
-        <AnimatedBackground themeName={currentTheme.name} />
+        <AnimatedBackground themeName={currentTheme.name} isPrivateView={isPrivateView} />
 
         <Toaster
           position="top-center"
@@ -618,6 +703,8 @@ function App() {
             onOpenAddCategory={() => setIsAddCategoryModalOpen(true)}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenSavedArsenals={() => setIsSavedArsenalsModalOpen(true)}
+            isPrivateView={isPrivateView}
+            onToggleVault={handleToggleVault}
           />
 
           <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 flex flex-col gap-12">
@@ -678,6 +765,7 @@ function App() {
                 username={displayUsername} 
                 isViewingShared={isViewingShared}
                 sharedUsername={sharedData?.username}
+                isPrivateView={isPrivateView}
               />
             </motion.div>
 
@@ -804,9 +892,47 @@ function App() {
           isOpen={isSavedArsenalsModalOpen}
           onClose={() => setIsSavedArsenalsModalOpen(false)}
           savedArsenals={savedArsenals}
-          viewingSavedId={viewingSavedId}
           onSelectArsenal={handleSelectArsenal}
-          onDeleteSavedArsenal={handleDeleteSavedArsenal}
+          onDeleteArsenal={handleDeleteSavedArsenal}
+          currentViewingId={viewingSavedId}
+        />
+        <PinSetupModal 
+          isOpen={isPinSetupOpen}
+          onClose={() => setIsPinSetupOpen(false)}
+          onSave={handlePinSetupSuccess}
+        />
+        <PinAuthModal 
+        isOpen={isPinAuthOpen} 
+        onClose={() => setIsPinAuthOpen(false)}
+        onAuth={handlePinAuthSuccess}
+        correctPin={vaultPin}
+        onForgotPin={() => {
+          setIsPinAuthOpen(false);
+          setIsPinRecoveryOpen(true);
+        }}
+      />
+      
+      <PinRecoveryModal
+        isOpen={isPinRecoveryOpen}
+        onClose={() => setIsPinRecoveryOpen(false)}
+        onRecover={handleRecoverPin}
+      />
+        <ContextMenu 
+          menu={contextMenu} 
+          onClose={() => setContextMenu(null)} 
+          onAction={handleContextMenuAction} 
+        />
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          username={username}
+          onUpdateUsername={setUsername}
+          onClearData={handleClearData}
+          onDeleteVault={handleDeleteVault}
+          enableThemeAnimation={enableThemeAnimation}
+          onToggleThemeAnimation={setEnableThemeAnimation}
+          enableSoundEffects={enableSoundEffects}
+          onToggleSoundEffects={setEnableSoundEffects}
         />
         <CategoryIconPickerModal
           isOpen={isCategoryIconPickerOpen}
@@ -820,22 +946,6 @@ function App() {
             ));
           }}
           category={editingCategoryAppearance}
-        />
-        <SettingsModal
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-          username={username}
-          onUpdateUsername={setUsername}
-          onClearData={handleClearData}
-          enableThemeAnimation={enableThemeAnimation}
-          onToggleThemeAnimation={setEnableThemeAnimation}
-          enableSoundEffects={enableSoundEffects}
-          onToggleSoundEffects={setEnableSoundEffects}
-        />
-        <ContextMenu 
-          menu={contextMenu} 
-          onClose={() => setContextMenu(null)} 
-          onAction={handleContextMenuAction} 
         />
       </div>
     </LayoutGroup>
