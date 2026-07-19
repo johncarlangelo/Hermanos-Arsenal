@@ -31,6 +31,7 @@ import PinRecoveryModal from './components/PinRecoveryModal';
 import { Plus, X, AlertTriangle, Eye } from 'lucide-react';
 import Checkbox from './components/Checkbox';
 import ThemeSplash from './components/ThemeSplash';
+import GlobalTooltip from './components/GlobalTooltip';
 
 function App() {
   const [username, setUsername] = useLocalStorage('linkdock-username', null);
@@ -955,6 +956,7 @@ function App() {
           }}
           category={editingCategoryAppearance}
         />
+        <GlobalTooltip />
       </div>
     </LayoutGroup>
   );

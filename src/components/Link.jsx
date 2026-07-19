@@ -10,6 +10,23 @@ export default function Link({ id, categoryId, name, url, description, isStarred
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  const handleMouseEnter = (e) => {
+    if (viewType !== 'icons') return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    window.dispatchEvent(new CustomEvent('linkdock-show-tooltip', {
+      detail: {
+        text: name,
+        x: rect.left + rect.width / 2,
+        y: rect.top
+      }
+    }));
+  };
+
+  const handleMouseLeave = () => {
+    if (viewType !== 'icons') return;
+    window.dispatchEvent(new CustomEvent('linkdock-hide-tooltip'));
+  };
+
   if (viewType === 'icons') {
     const size = typeof iconSize === 'number' ? iconSize : 48;
     const innerSize = Math.max(16, size - 24); // Ensure reasonable icon size
@@ -27,13 +44,15 @@ export default function Link({ id, categoryId, name, url, description, isStarred
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.8 }}
         transition={{ type: "spring", stiffness: 300, damping: 25, delay: index * 0.02 }}
-        className={`group relative flex items-center justify-center p-2 rounded-2xl transition-all duration-300 cursor-pointer shadow-sm hover:shadow-lg hover:-translate-y-1 ${
+        className={`relative flex items-center justify-center p-2 rounded-2xl transition-all duration-300 cursor-pointer shadow-sm hover:shadow-lg hover:-translate-y-1 ${
           isStarred 
             ? 'bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/30 shadow-amber-500/5' 
             : 'bg-theme-surface/40 hover:bg-theme-surface border border-theme-border/30 hover:border-theme-primary/30'
         }`}
         style={{ width: `${size}px`, height: `${size}px` }}
-        title={`${name}\n${url}`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onMouseDown={handleMouseLeave} // Hide tooltip when starting to drag
       >
         <a 
           href={url}
@@ -44,7 +63,7 @@ export default function Link({ id, categoryId, name, url, description, isStarred
             src={faviconUrl}
             alt={`${name} icon`}
             style={{ width: `${innerSize}px`, height: `${innerSize}px` }}
-            className="object-contain group-hover:scale-110 transition-transform duration-300"
+            className="object-contain hover:scale-110 transition-transform duration-300"
             onError={(e) => {
               e.target.style.display = 'none';
             }}
