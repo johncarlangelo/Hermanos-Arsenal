@@ -34,24 +34,16 @@
       "Sunday session, {name}?"
     ],
     "generic": [
-      "Welcome",
       "Welcome, {name}",
-      "Hey there",
       "Hey there, {name}",
       "{name} returns!",
       "Back at it!",
-      "Back at it, {name}",
       "Coffee and Work time?",
-      "Hi, how are you?",
       "Hi {name}, how are you?",
       "How was your day?",
-      "How was your day, {name}?",
-      "How's it going?",
       "How's it going, {name}?",
       "What's new?",
-      "What's new, {name}?",
-      "Let's chat incognito",
-      "Greetings, whoever you are"
+      "What's new, {name}?"
     ]
   },
   "custom": {
@@ -139,7 +131,8 @@
       "No cookies, no crumbs, phantom.",
       "Session ends, memory clears.",
       "Low profile mode, wanderer.",
-      "You're a ghost right now."
+      "You're a ghost right now.",
+      "Greetings, whoever you are"
     ]
   }
 }
