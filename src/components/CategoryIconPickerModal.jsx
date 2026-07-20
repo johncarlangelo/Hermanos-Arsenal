@@ -4,17 +4,49 @@ import { X, Search } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { HexColorPicker } from 'react-colorful';
 
-// Common icons suitable for categories
 const ICON_SUGGESTIONS = [
-  'Briefcase', 'Code', 'Monitor', 'Cpu', 'Laptop',
-  'Coffee', 'Music', 'Video', 'Gamepad', 'Headphones',
-  'Book', 'GraduationCap', 'Newspaper', 'PenTool', 'Lightbulb',
-  'Heart', 'Smile', 'Star', 'Gift', 'Plane',
-  'Home', 'Map', 'Compass', 'Image', 'Camera',
-  'Folder', 'FileText', 'Archive', 'Database', 'Cloud',
-  'Shield', 'Key', 'Lock', 'Unlock', 'Settings',
-  'Terminal', 'Bug', 'GitBranch', 'Github', 'Trello',
-  'Figma', 'Slack', 'Youtube', 'Twitter', 'Linkedin'
+  // General / Productivity / Organization
+  'Briefcase', 'Folder', 'FolderOpen', 'FileText', 'Archive', 'Inbox', 'Box', 'Package', 
+  'Bookmark', 'Pin', 'Paperclip', 'Link', 'Hash', 'Flag', 'Grid', 'List', 'Layout',
+  'Home', 'Settings', 'Search', 'Filter', 'CheckSquare', 'Calendar', 'Clock',
+  
+  // Education / Learning
+  'Book', 'BookOpen', 'GraduationCap', 'Library', 'Newspaper', 'Highlighter',
+  
+  // Tech / AI / Dev
+  'Code', 'Monitor', 'Cpu', 'Laptop', 'Terminal', 'Bug', 'GitBranch', 'Database', 'Cloud',
+  'Bot', 'Brain', 'Microchip', 'Sparkles', 'Wand2', 'Atom', 'Binary', 'Radio', 'Zap',
+  'Rocket', 'Server', 'HardDrive', 'Network', 'Wifi',
+  
+  // Gaming / Entertainment
+  'Gamepad', 'Joystick', 'Ghost', 'Sword', 'Crosshair', 'Target', 'Dices', 'Puzzle',
+  'Music', 'Video', 'Headphones', 'Film', 'Play', 'Tv', 'Speaker', 'Mic',
+  
+  // Design / Creative
+  'PenTool', 'Lightbulb', 'Image', 'Camera', 'Palette', 'Brush', 'Pen', 'Scissors',
+  'Crop', 'Layers', 'Type', 'Wand', 'Shapes',
+  
+  // Finance / Business / Shopping
+  'Bitcoin', 'DollarSign', 'Euro', 'PoundSterling', 'Wallet', 'CreditCard', 'TrendingUp',
+  'PieChart', 'BarChart', 'Banknote', 'Coins', 'Briefcase', 'ShoppingCart', 'ShoppingBag', 'Tag',
+  
+  // Lifestyle / Travel
+  'Coffee', 'Heart', 'Smile', 'Star', 'Gift', 'Plane', 'Map', 'Compass', 'MapPin',
+  'Navigation', 'Car', 'Bike', 'Bus', 'Train', 'Utensils', 'Pizza', 'CupSoda',
+  
+  // Health / Fitness
+  'Activity', 'Dumbbell', 'HeartPulse', 'Stethoscope',
+  
+  // Security
+  'Shield', 'Key', 'Lock', 'Unlock', 'Fingerprint', 'Eye', 'EyeOff',
+  
+  // Nature / Elements
+  'Sun', 'Moon', 'Flame', 'Droplet', 'Wind', 'Globe', 'Leaf',
+  
+  // Brands / Social / Comm
+  'Github', 'Trello', 'Figma', 'Slack', 'Youtube', 'Twitter', 'Linkedin', 'Instagram',
+  'Facebook', 'Twitch', 'Discord', 'MessageCircle', 'MessageSquare', 'Mail', 'AtSign', 'Users', 
+  'Share2', 'Send', 'Smartphone', 'Tablet'
 ];
 
 export default function CategoryIconPickerModal({ isOpen, onClose, onSave, category }) {
