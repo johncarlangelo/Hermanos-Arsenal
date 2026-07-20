@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Palette, Share2, Download, Upload, LogOut, ChevronDown, Command, Search, Layers, Plus, Settings, Trash2, Check, Archive, Save, Vault } from 'lucide-react';
 import { /* eslint-disable-line no-unused-vars */ motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import { formatKeybind, defaultKeybinds } from '../hooks/useKeybinds';
 
 export default function Header({ 
   username, 
@@ -20,7 +21,8 @@ export default function Header({
   onOpenSavedArsenals,
   viewingSavedId = null,
   isPrivateView,
-  onToggleVault
+  onToggleVault,
+  keybinds
 }) {
   const fileInputRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -75,8 +77,11 @@ export default function Header({
             Search your arsenal...
           </motion.span>
           <div className="hidden lg:flex items-center gap-1 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity">
-            <kbd className="inline-flex items-center justify-center h-5 px-1.5 text-[10px] font-bold bg-theme-background border border-theme-border/80 rounded text-theme-text-secondary">⌘</kbd>
-            <kbd className="inline-flex items-center justify-center h-5 px-1.5 text-[10px] font-bold bg-theme-background border border-theme-border/80 rounded text-theme-text-secondary">K</kbd>
+            {formatKeybind(keybinds?.search || defaultKeybinds.search).split(' ').map((part, i) => (
+              <kbd key={i} className="inline-flex items-center justify-center h-5 px-1.5 text-[10px] font-bold bg-theme-background border border-theme-border/80 rounded text-theme-text-secondary">
+                {part}
+              </kbd>
+            ))}
           </div>
         </motion.div>
 

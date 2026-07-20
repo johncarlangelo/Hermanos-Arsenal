@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { /* eslint-disable-line no-unused-vars */ motion, AnimatePresence } from 'motion/react';
-import { X, Settings, User, Trash2, Sliders, Lock, AlertTriangle } from 'lucide-react';
+import { X, Settings, User, Trash2, Sliders, Lock, AlertTriangle, Command } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ToggleSwitch from './ToggleSwitch';
 import ConfirmationModal from './ConfirmationModal';
+import { formatKeybind, defaultKeybinds } from '../hooks/useKeybinds';
 
-export default function SettingsModal({ isOpen, onClose, username, onUpdateUsername, onClearData, onDeleteVault, enableThemeAnimation, onToggleThemeAnimation, enableSoundEffects, onToggleSoundEffects }) {
+export default function SettingsModal({ isOpen, onClose, username, onUpdateUsername, onClearData, onDeleteVault, enableThemeAnimation, onToggleThemeAnimation, enableSoundEffects, onToggleSoundEffects, keybinds, updateKeybind }) {
   const [name, setName] = useState(username || '');
   const [activeTab, setActiveTab] = useState('profile');
   const [confirmClearDataOpen, setConfirmClearDataOpen] = useState(false);
   const [confirmDeleteVaultOpen, setConfirmDeleteVaultOpen] = useState(false);
+  const [recordingAction, setRecordingAction] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -95,6 +97,13 @@ export default function SettingsModal({ isOpen, onClose, username, onUpdateUsern
               >
                 <Trash2 size={16} />
                 <span className="hidden sm:inline">Data</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('shortcuts')}
+                className={`flex-1 sm:flex-none flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'shortcuts' ? 'bg-theme-primary text-white shadow-lg shadow-theme-primary/20' : 'text-theme-text-secondary hover:text-theme-text hover:bg-theme-border/50'}`}
+              >
+                <Command size={16} />
+                <span className="hidden sm:inline">Shortcuts</span>
               </button>
             </div>
 
@@ -230,6 +239,64 @@ export default function SettingsModal({ isOpen, onClose, username, onUpdateUsern
                     >
                       Clear All Data
                     </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'shortcuts' && (
+                <motion.div
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="space-y-6"
+                >
+                  <div>
+                    <h2 className="text-2xl font-display font-bold text-theme-text mb-2">Shortcuts</h2>
+                    <p className="text-theme-text-secondary text-sm mb-6">Customize global keyboard shortcuts.</p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {[
+                      { id: 'search', label: 'Global Search' },
+                      { id: 'addLink', label: 'Add Link' },
+                      { id: 'bulkAdd', label: 'Bulk Add' },
+                      { id: 'addCategory', label: 'Add Category' }
+                    ].map(shortcut => (
+                      <div key={shortcut.id} className="flex items-center justify-between p-3 rounded-xl bg-theme-background/30 border border-theme-border/50 hover:border-theme-primary/30 transition-colors">
+                        <span className="text-sm font-medium text-theme-text">{shortcut.label}</span>
+                        <button
+                          onClick={() => setRecordingAction(shortcut.id)}
+                          onKeyDown={(e) => {
+                            if (recordingAction === shortcut.id) {
+                              e.preventDefault();
+                              if (['Meta', 'Control', 'Shift', 'Alt', 'Tab'].includes(e.key)) return;
+                              if (e.key === 'Escape') {
+                                setRecordingAction(null);
+                                return;
+                              }
+                              updateKeybind(shortcut.id, {
+                                key: e.key,
+                                meta: e.metaKey || e.ctrlKey,
+                                ctrl: e.metaKey || e.ctrlKey,
+                                shift: e.shiftKey,
+                                alt: e.altKey
+                              });
+                              setRecordingAction(null);
+                            }
+                          }}
+                          onBlur={() => setRecordingAction(null)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                            recordingAction === shortcut.id
+                              ? 'bg-theme-primary/20 border-theme-primary text-theme-primary ring-2 ring-theme-primary/50'
+                              : 'bg-theme-surface border-theme-border text-theme-text-secondary hover:text-theme-text hover:bg-theme-border/50'
+                          }`}
+                        >
+                          {recordingAction === shortcut.id 
+                            ? 'Listening...' 
+                            : formatKeybind(keybinds?.[shortcut.id] || defaultKeybinds[shortcut.id])}
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </motion.div>
               )}

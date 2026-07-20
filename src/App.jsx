@@ -22,6 +22,7 @@ import GreetingClock from './components/GreetingClock';
 import SearchOverlay from './components/SearchOverlay';
 import UndoToast from './components/UndoToast';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { useKeybinds, isKeybindMatch } from './hooks/useKeybinds';
 import { defaultThemes, incognitoTheme, applyTheme } from './utils/theme';
 import { exportCatalogue, importCatalogue, mergeData, detectDuplicates } from './utils/export';
 import { generateShareLink, getSharedCatalogueFromUrl } from './utils/share';
@@ -112,6 +113,36 @@ function App() {
   const activeSavedArsenal = isViewingShared && viewingSavedId ? savedArsenals.find(a => a.id === viewingSavedId) : null;
   const isOutdatedView = activeSavedArsenal && savedArsenals.some(a => a.username === activeSavedArsenal.username && new Date(a.timestamp).getTime() > new Date(activeSavedArsenal.timestamp).getTime());
   const showOutdatedBanner = isOutdatedView && !hiddenOutdatedBanners.includes(viewingSavedId) && !dismissedSessionBanners.includes(viewingSavedId);
+
+  // Keybinds Hook
+  const { keybinds, updateKeybind } = useKeybinds();
+
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger if user is typing in an input or textarea
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) && !isSearchOpen) {
+        return;
+      }
+      
+      if (isKeybindMatch(e, keybinds.search)) {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      } else if (isKeybindMatch(e, keybinds.addLink) && !isViewingShared) {
+        e.preventDefault();
+        setIsAddLinkModalOpen(true);
+      } else if (isKeybindMatch(e, keybinds.bulkAdd) && !isViewingShared) {
+        e.preventDefault();
+        setIsBulkAddModalOpen(true);
+      } else if (isKeybindMatch(e, keybinds.addCategory) && !isViewingShared) {
+        e.preventDefault();
+        setIsAddCategoryModalOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [keybinds, isViewingShared, isSearchOpen]);
 
   // Add click outside listener for context menu
 
@@ -714,6 +745,7 @@ function App() {
             onOpenSavedArsenals={() => setIsSavedArsenalsModalOpen(true)}
             isPrivateView={isPrivateView}
             onToggleVault={handleToggleVault}
+            keybinds={keybinds}
           />
 
           <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 flex flex-col gap-12">
@@ -942,6 +974,8 @@ function App() {
           onToggleThemeAnimation={setEnableThemeAnimation}
           enableSoundEffects={enableSoundEffects}
           onToggleSoundEffects={setEnableSoundEffects}
+          keybinds={keybinds}
+          updateKeybind={updateKeybind}
         />
         <CategoryIconPickerModal
           isOpen={isCategoryIconPickerOpen}
