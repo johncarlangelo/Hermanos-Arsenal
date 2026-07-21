@@ -210,19 +210,21 @@ export default function Category({
               autoFocus
             />
           ) : (
-            <h3 
-              onDoubleClick={handleDoubleClick}
-              className="font-display font-bold text-lg tracking-tight text-theme-text truncate cursor-text select-none group-hover/header:text-theme-primary transition-colors"
-            >
-              {name}
-            </h3>
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <h3 
+                onDoubleClick={handleDoubleClick}
+                className="font-display font-bold text-lg tracking-tight text-theme-text truncate cursor-text select-none group-hover/header:text-theme-primary transition-colors"
+              >
+                {name}
+              </h3>
+              <div className="flex items-center justify-center px-2.5 py-0.5 text-[11px] font-bold bg-theme-surface border border-theme-border/50 text-theme-text-secondary rounded-full shadow-sm shrink-0 group-hover/header:border-theme-primary/30 group-hover/header:text-theme-primary/80 transition-colors">
+                {links.length}
+              </div>
+            </div>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center min-w-[24px] h-[24px] px-2 text-[11px] font-bold bg-theme-surface border border-theme-border/50 text-theme-text-secondary rounded-full shadow-sm">
-            {links.length}
-          </div>
+        <div className="flex items-center gap-2 shrink-0 ml-2">
           {!isLocked && (
             <div className="relative">
               <button 
