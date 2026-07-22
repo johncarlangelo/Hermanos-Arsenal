@@ -33,6 +33,7 @@ import { Plus, X, AlertTriangle, Eye } from 'lucide-react';
 import Checkbox from './components/Checkbox';
 import ThemeSplash from './components/ThemeSplash';
 import GlobalTooltip from './components/GlobalTooltip';
+import TrashBinModal from './components/TrashBinModal';
 
 function App() {
   const [username, setUsername] = useLocalStorage('linkdock-username', null);
@@ -63,6 +64,8 @@ function App() {
   const [editingCategoryAppearance, setEditingCategoryAppearance] = useState(null);
   const [editingLink, setEditingLink] = useState(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isTrashBinOpen, setIsTrashBinOpen] = useState(false);
+  const [trashItems, setTrashItems] = useLocalStorage('linkdock-trash', []);
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [contextMenu, setContextMenu] = useState(null);
@@ -113,6 +116,20 @@ function App() {
   const activeSavedArsenal = isViewingShared && viewingSavedId ? savedArsenals.find(a => a.id === viewingSavedId) : null;
   const isOutdatedView = activeSavedArsenal && savedArsenals.some(a => a.username === activeSavedArsenal.username && new Date(a.timestamp).getTime() > new Date(activeSavedArsenal.timestamp).getTime());
   const showOutdatedBanner = isOutdatedView && !hiddenOutdatedBanners.includes(viewingSavedId) && !dismissedSessionBanners.includes(viewingSavedId);
+
+  // Auto-clear trash items older than 30 days
+  useEffect(() => {
+    if (!trashItems || trashItems.length === 0) return;
+    const now = new Date().getTime();
+    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+    const filteredTrash = trashItems.filter(item => {
+      const deletedAt = new Date(item.deletedAt).getTime();
+      return (now - deletedAt) < thirtyDaysInMs;
+    });
+    if (filteredTrash.length !== trashItems.length) {
+      setTrashItems(filteredTrash);
+    }
+  }, [trashItems, setTrashItems]);
 
   // Keybinds Hook
   const { keybinds, updateKeybind } = useKeybinds();
@@ -455,6 +472,15 @@ function App() {
           </button>
           <button
             onClick={() => {
+              const categoryToDelete = categories.find(cat => cat.id === id);
+              if (categoryToDelete) {
+                setTrashItems(prev => [...prev, {
+                  id: Date.now().toString(),
+                  type: 'category',
+                  data: categoryToDelete,
+                  deletedAt: new Date().toISOString()
+                }]);
+              }
               setCategories(categories.filter(cat => cat.id !== id));
               toast.dismiss(t.id);
               toast.success(`Deleted "${categoryName}"`);
@@ -502,31 +528,45 @@ function App() {
   const handleDeleteLink = (categoryId, linkId) => {
     let linkToRestore = null;
     let linkIndex = -1;
+    let categoryName = '';
+    
+    const category = categories.find(cat => cat.id === categoryId);
+    if (category) {
+      categoryName = category.name;
+      linkIndex = category.links.findIndex(l => l.id === linkId);
+      if (linkIndex !== -1) {
+        linkToRestore = category.links[linkIndex];
+      }
+    }
+
+    if (!linkToRestore) return;
+
     playSfx('trash');
 
-    setCategories(prev => {
-      const category = prev.find(cat => cat.id === categoryId);
-      if (category) {
-        linkIndex = category.links.findIndex(l => l.id === linkId);
-        if (linkIndex !== -1) {
-          linkToRestore = category.links[linkIndex];
-        }
+    setCategories(prev => prev.map(cat => {
+      if (cat.id === categoryId) {
+        return { ...cat, links: cat.links.filter(link => link.id !== linkId) };
       }
-
-      return prev.map(cat => {
-        if (cat.id === categoryId) {
-          return { ...cat, links: cat.links.filter(link => link.id !== linkId) };
-        }
-        return cat;
-      });
-    });
+      return cat;
+    }));
 
     if (linkToRestore) {
+      const trashItemId = Date.now().toString();
+      setTrashItems(prev => [...prev, {
+        id: trashItemId,
+        type: 'link',
+        data: linkToRestore,
+        originalCategoryId: categoryId,
+        originalCategoryName: categoryName,
+        deletedAt: new Date().toISOString()
+      }]);
+
       toast.custom((t) => (
         <UndoToast 
           t={t} 
           message={`Deleted link "${linkToRestore.name || linkToRestore.url}"`}
           onUndo={() => {
+            setTrashItems(prev => prev.filter(item => item.id !== trashItemId));
             setCategories(prev => prev.map(cat => {
               if (cat.id === categoryId) {
                 const newLinks = [...(cat.links || [])];
@@ -539,6 +579,37 @@ function App() {
         />
       ), { duration: 15000, position: 'bottom-center' });
     }
+  };
+
+  const handleRestoreFromTrash = (item) => {
+    if (item.type === 'category') {
+      setCategories(prev => [...prev, item.data]);
+      setTrashItems(prev => prev.filter(t => t.id !== item.id));
+      toast.success(`Restored category`);
+    } else if (item.type === 'link') {
+      const categoryExists = categories.some(cat => cat.id === item.originalCategoryId);
+      if (!categoryExists) {
+        toast.error(`Original category "${item.originalCategoryName}" no longer exists.`);
+        return;
+      }
+      setCategories(prev => prev.map(cat => {
+        if (cat.id === item.originalCategoryId) {
+          return { ...cat, links: [...(cat.links || []), item.data] };
+        }
+        return cat;
+      }));
+      setTrashItems(prev => prev.filter(t => t.id !== item.id));
+      toast.success(`Restored link`);
+    }
+  };
+
+  const handlePermanentDeleteFromTrash = (id) => {
+    setTrashItems(prev => prev.filter(t => t.id !== id));
+  };
+
+  const handleEmptyTrash = () => {
+    setTrashItems([]);
+    toast.success('Trash emptied');
   };
 
   const handleOpenAddLinkModal = (categoryId) => {
@@ -743,6 +814,7 @@ function App() {
             onOpenAddCategory={() => setIsAddCategoryModalOpen(true)}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenSavedArsenals={() => setIsSavedArsenalsModalOpen(true)}
+            onOpenTrashBin={() => setIsTrashBinOpen(true)}
             isPrivateView={isPrivateView}
             onToggleVault={handleToggleVault}
             keybinds={keybinds}
@@ -989,6 +1061,14 @@ function App() {
             ));
           }}
           category={editingCategoryAppearance}
+        />
+        <TrashBinModal
+          isOpen={isTrashBinOpen}
+          onClose={() => setIsTrashBinOpen(false)}
+          trashItems={trashItems}
+          onRestore={handleRestoreFromTrash}
+          onPermanentDelete={handlePermanentDeleteFromTrash}
+          onEmptyTrash={handleEmptyTrash}
         />
         <GlobalTooltip />
       </div>

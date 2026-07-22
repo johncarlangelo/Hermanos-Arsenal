@@ -19,6 +19,7 @@ export default function Header({
   onOpenAddCategory,
   onOpenSettings,
   onOpenSavedArsenals,
+  onOpenTrashBin,
   viewingSavedId = null,
   isPrivateView,
   onToggleVault,
@@ -228,6 +229,16 @@ export default function Header({
                       >
                         <Settings size={16} className="text-theme-text-secondary group-hover:text-theme-primary transition-colors" />
                         Settings
+                      </button>
+                      <button 
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-theme-text hover:bg-theme-primary/10 hover:text-theme-primary transition-colors group"
+                        onClick={() => {
+                          onOpenTrashBin();
+                          setIsMenuOpen(false);
+                        }}
+                      >
+                        <Trash2 size={16} className="text-theme-text-secondary group-hover:text-theme-primary transition-colors" />
+                        Trash Bin
                       </button>
                       <button 
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-theme-text hover:bg-theme-primary/10 hover:text-theme-primary transition-colors group"
