@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Trash2, RotateCcw, AlertTriangle, Link as LinkIcon, Folder } from 'lucide-react';
+import { X, Trash2, RotateCcw, AlertTriangle, Folder } from 'lucide-react';
+import { getFaviconUrl } from '../utils/favicon';
 export default function TrashBinModal({ 
   isOpen, 
   onClose, 
@@ -132,7 +133,7 @@ export default function TrashBinModal({
                 <AnimatePresence>
                   {sortedItems.map(item => {
                     const isLink = item.type === 'link';
-                    const Icon = isLink ? LinkIcon : Folder;
+                    const Icon = Folder;
                     const isConfirming = confirmDeleteId === item.id;
                     
                     return (
@@ -170,8 +171,19 @@ export default function TrashBinModal({
                         ) : (
                           <>
                             <div className="flex items-center gap-4 min-w-0 flex-1">
-                              <div className={`w-10 h-10 shrink-0 rounded-lg flex items-center justify-center ${isLink ? 'bg-blue-500/10 text-blue-500' : 'bg-purple-500/10 text-purple-500'}`}>
-                                <Icon size={20} />
+                              <div className={`w-10 h-10 shrink-0 rounded-lg flex items-center justify-center overflow-hidden ${isLink ? 'bg-white shadow-sm' : 'bg-purple-500/10 text-purple-500'}`}>
+                                {isLink ? (
+                                  <img 
+                                    src={getFaviconUrl(item.data.url)} 
+                                    alt="favicon" 
+                                    className="w-5 h-5 object-contain"
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                    }}
+                                  />
+                                ) : (
+                                  <Icon size={20} />
+                                )}
                               </div>
                               <div className="min-w-0 flex-1">
                                 <h4 className="font-semibold text-theme-text truncate text-sm">
