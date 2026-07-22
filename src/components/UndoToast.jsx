@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react';
 import { X, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function UndoToast({ t, message, onUndo }) {
+export default function UndoToast({ t, message, onUndo, duration = 5000 }) {
   const [progress, setProgress] = useState(100);
-  const duration = 15000;
 
   useEffect(() => {
     const startTime = Date.now();

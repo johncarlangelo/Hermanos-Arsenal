@@ -577,7 +577,7 @@ function App() {
             }));
           }}
         />
-      ), { duration: 15000, position: 'bottom-center' });
+      ), { duration: 5000, position: 'bottom-center' });
     }
   };
 
